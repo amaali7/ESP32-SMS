@@ -22,7 +22,7 @@ class BordX
 
         QueueHandle_t _SmsToBeSend0 = xQueueCreate(10, sizeof(String));
         QueueHandle_t _SerialBuffer  = xQueueCreate(100, sizeof(String));
-        static QueueHandle_t _SerialBufferfromPC = xQueueCreate(100, sizeof(String));
+        QueueHandle_t _SerialBufferfromPC = xQueueCreate(100, sizeof(String));
 
         String _tempBuffer;
         SemaphoreHandle_t _Sim900Semaphore;

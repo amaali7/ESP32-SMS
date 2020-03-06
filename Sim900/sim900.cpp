@@ -171,7 +171,7 @@ String Sim900::signalQuality()
     return(_readSerial());
 }
 
-bool Sim900::sendSms(int pdulength,char* pdu)
+bool Sim900::sendSms(int pdulength, String pdu)
 {
 
     // Can take up to 60 seconds
@@ -194,23 +194,7 @@ bool Sim900::sendSms(int pdulength,char* pdu)
     // Error NOT found, return 0
 }
 
-String Sim900::getNumberSms(uint8_t index)
-{
-    _buffer=readSms(index);
-    //Serial.println(_buffer.length());
-    if (_buffer.length() > 10) //avoid empty sms
-    {
-        uint8_t _idx1=_buffer.indexOf("+CMGR:");
-        _idx1=_buffer.indexOf("\",\"",_idx1+1);
-        return _buffer.substring(_idx1+3,_buffer.indexOf("\",\"",_idx1+4));
-    }
-    else
-    {
-        return "";
-    }
-}
-
-String Sim900::readSms(uint8_t index)
+String Sim900::readSms()
 {
 
     // Can take up to 5 seconds
@@ -219,25 +203,23 @@ String Sim900::readSms(uint8_t index)
 
     if (( _readSerial(5000).indexOf("ER")) ==-1)
     {
-        this->SoftwareSerial::print (F("AT+CMGR="));
-        this->SoftwareSerial::print (index);
-        this->SoftwareSerial::print ("\r");
-        _buffer=_readSerial();
-        if (_buffer.indexOf("CMGR:")!=-1)
+        this->SoftwareSerial::print (F("AT+CMGL=\r"));
+        _buffer =_readSerial();
+        if (_buffer.indexOf("CMGL:")!=-1)
         {
             return _buffer;
         }
-        else return "";
+        else return "NoSMS";
     }
     else
-        return "";
+        return "NoSMS";
 }
 
 bool Sim900::delAllSms()
 {
     // Can take up to 25 seconds
 
-    this->SoftwareSerial::print(F("at+cmgda=\"del all\"\n\r"));
+    this->SoftwareSerial::print(F("AT+CMGD=4\n\r"));
     _buffer=_readSerial(25000);
     if ( (_buffer.indexOf("ER")) == -1)
     {

@@ -49,9 +49,8 @@ public:
     String getOperatorsList();
     String getOperator();
 
-    bool sendSms(int pdulength,char* pdu);
-    String readSms(uint8_t index);
-    String getNumberSms(uint8_t index);
+    bool sendSms(int pdulength, String pdu);
+    String readSms();
     bool delAllSms();
 
     String signalQuality();

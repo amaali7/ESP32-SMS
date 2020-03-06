@@ -37,7 +37,7 @@ void BordX::_MainSerialHandler(void* pt)
       _data0 = Serial.readString();
       if(!_data0.isEmpty())
       {
-        xQueueSend(_SerialBufferfromPC, &_data0,(TickType_t) 0);
+        //xQueueSend(_SerialBufferfromPC, &_data0,(TickType_t) 0);
       }
     }
     vTaskDelay(10);
