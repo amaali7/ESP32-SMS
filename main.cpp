@@ -54,7 +54,7 @@ void MainSerialResaver(void* pt)
         SplitString(&_data, &_key,sapG);
         _erorr = "Erorr";
         if(_key == "SendSms"){
-          SplitString(&_data0, &_GsmId, sapL);
+          SplitString(&_data0, &_GsmId, sapG);
           if(_GsmId == "0")
           {
             xQueueSend(SmsToBeSend0, &_data,(TickType_t) 0);
@@ -112,6 +112,10 @@ void SmsSend(void* pt)
   String _data0;
   String _smsId;
   int _pdulength;
+  String _smsType;
+  String _numberOfParts;
+  String _sms;
+  String _partIndex;
   String _pdu;
   String _msgs;
   String _msgf;
@@ -125,27 +129,69 @@ void SmsSend(void* pt)
       {
         xQueueReceive(SmsToBeSend0, &_data0,(TickType_t) 5);
         SplitString(&_data0, &_smsId, sapG);
-        SplitString(&_data0, &TString, sapL);
-        _pdulength = TString.toInt();
-        Status = Sim900A.sendSms(_pdulength, _data0);
-        counter = 0;
-        while(counter<1){
-          if(Status){
-            _msgs = "SmsSendReport" + String(sapG) + _smsId + String(sapL) +"Success";
-            xQueueSend(SerialBuffer, &_msgs,(TickType_t) 0);
-            break;
-          }
-          else
-          {
-            Status = Sim900A.sendSms(_pdulength, _pdu);
-          }
-          ++counter;
-        }
-        if(!Status)
+        SplitString(&_data0, &_smsType, sapG);
+        if (_smsType == "s")
         {
-          _msgf = "SmsSendReport" + String(sapG) + _smsId + String(sapL) + "Fail";
-          xQueueSend(SerialBuffer, &_msgf,(TickType_t) 0); 
+          SplitString(&_data0, &TString, sapL);
+          _pdulength = TString.toInt();
+          Status = Sim900A.sendSms(_pdulength, _data0);
+          counter = 0;
+          while(counter<1){
+            if(Status){
+              _msgs = "SmsSendReport" + String(sapG) + _smsId + String(sapL) +"Success";
+              xQueueSend(SerialBuffer, &_msgs,(TickType_t) 0);
+              break;
+            }
+            else
+            {
+              Status = Sim900A.sendSms(_pdulength, _pdu);
+            }
+            ++counter;
+          }
+          if(!Status)
+          {
+            _msgf = "SmsSendReport" + String(sapG) + _smsId + String(sapL) + "Fail";
+            xQueueSend(SerialBuffer, &_msgf,(TickType_t) 0); 
+          }
         }
+        else if (_smsType == "m")
+        {
+          SplitString(&_data0, &_numberOfParts, sapG);
+          for (size_t i = 0; i < _numberOfParts.toInt(); i++)
+          {
+            SplitString(&_data0, &_sms, sapG);
+            SplitString(&_sms, &_partIndex, sapL);
+            SplitString(&_sms, &TString, sapL);
+            _pdulength = TString.toInt();
+            Status = Sim900A.sendSms(_pdulength, _data0);
+            counter = 0;
+            while(counter<1){
+              if(Status){
+                _msgs = "SmsSendReport" + String(sapG) + _smsId + String(sapL)+_partIndex + String(sapL) +"Success";
+                xQueueSend(SerialBuffer, &_msgs,(TickType_t) 0);
+                break;
+              }
+              else
+              {
+                Status = Sim900A.sendSms(_pdulength, _pdu);
+              }
+              ++counter;
+            }
+            if(!Status)
+            {
+              _msgf = "SmsSendReport" + String(sapG) + _smsId + String(sapL)+_partIndex + String(sapL) + "Fail";
+              xQueueSend(SerialBuffer, &_msgf,(TickType_t) 0); 
+            }
+          }
+          
+          /* code */
+        }
+        else
+        {
+          _msgs = "SmsSendReport" + String(sapG) + _smsId + String(sapL)+ "Erorr";
+          xQueueSend(SerialBuffer, &_msgs,(TickType_t) 0);
+        }
+        
         // delay(100);
         Sim900A.delAllSms();
       }
