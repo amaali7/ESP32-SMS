@@ -14,6 +14,7 @@ void replace_callback (const char * match,         // what we found
   replacement_length = 1;
 }  // end of replace_callback 
 
+
 String CMGL(String data)
 {
   unsigned long count;
@@ -23,10 +24,9 @@ String CMGL(String data)
   MatchState ms (buf);
   ms.GlobalReplace (p, replace_callback);
   data = buf;
-  data.replace('\r\n','\0');
+  data.replace("\r\n","");
   return data;
 }
-
 
 void SplitString(String *data, String *token, String separator)
 {
