@@ -2,6 +2,7 @@
 #define sim900x
 #include <SoftwareSerial.h>
 #include <Arduino.h>
+#include <Regexp.h>
 
 #define DEFAULT_RX_PIN 		15
 #define DEFAULT_TX_PIN 		2

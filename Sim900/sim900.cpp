@@ -4,6 +4,29 @@
 //SoftwareSerial SIM(RX_PIN,TX_PIN);
 //String _buffer;
 
+void replace_callback (const char * match,         // what we found
+                       const unsigned int length,  // how long it was
+                       char * & replacement,       // put replacement here
+                       unsigned int & replacement_length,  // put replacement length here
+                       const MatchState & ms)      // for looking up captures
+{
+  replacement = "#";
+  replacement_length = 1;
+}  // end of replace_callback 
+
+String CMGL(String data)
+{
+  unsigned long count;
+  char buf[data.length()+1];
+  char p[100] = "%+CMGL:%s*(%d*),%s*[0-1],*,(%d+)\r\n";
+  data.toCharArray(buf,data.length()+1);
+  MatchState ms (buf);
+  ms.GlobalReplace (p, replace_callback);
+  data = buf;
+  data.replace('\r\n','\0');
+  return data;
+}
+
 
 void SplitString(String *data, String *token, String separator)
 {
