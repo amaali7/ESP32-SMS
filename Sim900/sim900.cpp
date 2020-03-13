@@ -4,6 +4,13 @@
 //SoftwareSerial SIM(RX_PIN,TX_PIN);
 //String _buffer;
 
+
+void SplitString(String *data, String *token, String separator)
+{
+  *token = data->substring(0, data->indexOf(separator));
+  data->remove(0, data->indexOf(separator) + separator.length());
+}
+
 Sim900::Sim900(void) : SoftwareSerial(DEFAULT_RX_PIN, DEFAULT_TX_PIN)
 {
     RX_PIN 		= DEFAULT_RX_PIN;
@@ -34,6 +41,49 @@ void Sim900::begin(uint32_t baud)
     _sleepMode = 0;
     _functionalityMode = 1;
     _buffer.reserve(BUFFER_RESERVE_MEMORY); // Reserve memory to prevent intern fragmention
+}
+
+void Sim900::beginServe()
+{
+    bool x = true;
+    Serial.println("  ");
+    while (x)
+    {
+        this->SoftwareSerial::print (F("AT+CMGF=0\r"));
+        _buffer = _readSerial();
+        if(_buffer.indexOf("OK") != -1)
+        {
+        Serial.println("StatusReport" + String(sapG) + "PDU Mode has been set" + String(sapL) + "Success");
+        _buffer = "";
+        x = false;
+        }
+    }
+    delay(3000);
+    x = true;
+    while (x)
+    {
+        this->SoftwareSerial::print(F("AT+GSMBUSY=1\r\n"));
+        _buffer = _readSerial();
+        if(_buffer.indexOf("OK") != -1)
+        {
+        Serial.println("StatusReport" + String(sapG) + "Phone Call Ofline" + String(sapL) + "Success");
+        _buffer = "";
+        x = false;
+        }
+    }
+    x = true;
+    delay(3000);
+    while (x)
+    {
+        this->SoftwareSerial::print(F("AT+CNMI=0,0,0,1,1\r"));
+        _buffer = _readSerial();
+        if(_buffer.indexOf("OK") != -1)
+        {
+        Serial.println("StatusReport" + String(sapG) + "SMS Delivery Disabled" + String(sapL) + "Success");
+        _buffer = "";
+        x = false;
+        }
+    }
 }
 
 /*
@@ -197,37 +247,52 @@ bool Sim900::sendSms(int pdulength, String pdu)
 String Sim900::readSms()
 {
 
-    // Can take up to 5 seconds
-
-    this->SoftwareSerial::print (F("AT+CMGF=0\r"));
-
-    if (( _readSerial(5000).indexOf("ER")) ==-1)
+    int index;
+    String _pdus;
+    this->SoftwareSerial::print (F("AT+CMGL=0\r"));
+    _buffer =_readSerial(10000);
+    //if (_buffer.indexOf("OK")!=-1 && !((_buffer.length()+1) == 29))
+    //if (_buffer.indexOf("OK")!=-1)
+    if (_buffer.indexOf("OK")!=-1 && !((_buffer.length()+1) == 29))
     {
-        this->SoftwareSerial::print (F("AT+CMGL=\r"));
-        _buffer =_readSerial();
-        if (_buffer.indexOf("CMGL:")!=-1)
-        {
-            return _buffer;
-        }
-        else return "NoSMS";
+        _buffer.replace("AT+CMGL=0","");
+        index = _buffer.lastIndexOf('OK');
+        _buffer.remove(index);
+        _buffer.remove(index-1);
+
+        // _buffer.replace("+CMGL: ", sapG);
+        // _buffer.replace('\r\n', ' ');
+        // _buffer.replace('\n', ' ');
+        // _buffer.replace('\r', ' ');
+        // _buffer.replace(' ','');
+        
+        return _pdus;
     }
-    else
-        return "NoSMS";
+    else return "NoSMS";
 }
 
 bool Sim900::delAllSms()
 {
     // Can take up to 25 seconds
 
-    this->SoftwareSerial::print(F("AT+CMGD=4\n\r"));
+    this->SoftwareSerial::print(F("AT+CMGD=1,4s\n\r"));
     _buffer=_readSerial(25000);
-    if ( (_buffer.indexOf("ER")) == -1)
-    {
-        return false;
-    }
-    else return true;
+    if (_buffer.indexOf("OK")!=-1) {return true;}else {return false;}
     // Error found, return 1
     // Error NOT found, return 0
+}
+
+
+bool Sim900::delReadedSms(){ 
+    this->SoftwareSerial::print(F("AT+CMGD=1,1\n\r"));
+    _buffer=_readSerial(25000);
+    if (_buffer.indexOf("OK")!=-1) {return true;}else {return false;}  
+}
+
+bool Sim900::delSendedSms(){ 
+    this->SoftwareSerial::print(F("AT+CMGD=1,2\n\r"));
+    _buffer=_readSerial(25000);
+    if (_buffer.indexOf("OK")!=-1) {return true;}else {return false;}    
 }
 
 //
@@ -243,17 +308,10 @@ String Sim900::_readSerial()
         delay(13);
     }
 
-    String str;
-
     while(this->SoftwareSerial::available())
     {
-        if (this->SoftwareSerial::available()>0)
-        {
-            str += (char) this->SoftwareSerial::read();
-        }
+        return this->SoftwareSerial::readString();
     }
-
-    return str;
 
 }
 
@@ -267,16 +325,8 @@ String Sim900::_readSerial(uint32_t timeout)
         delay(13);
     }
 
-    String str;
-
     while(this->SoftwareSerial::available())
     {
-        if (this->SoftwareSerial::available()>0)
-        {
-            str += (char) this->SoftwareSerial::read();
-        }
+        return this->SoftwareSerial::readString();
     }
-
-    return str;
-
 }

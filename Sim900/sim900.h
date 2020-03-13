@@ -10,6 +10,11 @@
 #define DEFAULT_BAUD_RATE		9600
 #define TIME_OUT_READ_SERIAL	5000
 
+#define sapG "⁁⁂⁁"
+#define sapL "⁂⁁⁂"
+
+
+void SplitString(String *data, String *token, String separator);
 
 class Sim900 : public SoftwareSerial
 {
@@ -39,7 +44,7 @@ public:
     void begin();					//Default baud 9600
     void begin(uint32_t baud);
     void reset();
-
+    void beginServe();
     bool setFunctionalityMode(uint8_t fun);
     uint8_t getFunctionalityMode();
 
@@ -52,6 +57,9 @@ public:
     bool sendSms(int pdulength, String pdu);
     String readSms();
     bool delAllSms();
+    bool delReadedSms();
+    bool delSendedSms();
+    
 
     String signalQuality();
     void setPhoneFunctionality();

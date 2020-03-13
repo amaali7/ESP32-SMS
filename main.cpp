@@ -1,9 +1,8 @@
 #include "Sim900/sim900.h"
 
+
 Sim900 Sim900A(15,2);
 
-#define sapG "#"
-#define sapL "*"
 
 void SplitString(String *data, String *token, String separator)
 {
@@ -157,7 +156,7 @@ void SmsSend(void* pt)
         else if (_smsType == "m")
         {
           SplitString(&_data0, &_numberOfParts, sapG);
-          for (size_t i = 0; i < _numberOfParts.toInt(); i++)
+          for (size_t i = 0; i <= _numberOfParts.toInt()-1; i++)
           {
             SplitString(&_data0, &_sms, sapG);
             SplitString(&_sms, &_partIndex, sapL);
@@ -193,7 +192,7 @@ void SmsSend(void* pt)
         }
         
         // delay(100);
-        Sim900A.delAllSms();
+        Sim900A.delSendedSms();
       }
       xSemaphoreGive( Sim900ASemaphore );
     }
@@ -212,17 +211,17 @@ void ResaveSMS(void* pt)
     if( xSemaphoreTake( Sim900ASemaphore, ( TickType_t ) portMAX_DELAY ) == pdTRUE )
     {
       data = Sim900A.readSms();
-      if(data.indexOf("NoSMS") != -1)
+      
+      if(data == "NoSMS")
       {
         ;
       }
-      else
+      else if (data.length()>=40)
       {
-        dataRedy = "NewSms" + String(sapG) + data;
+        dataRedy = "NewSms" + data;
         xQueueSend(SerialBuffer, &dataRedy,(TickType_t) 0);
-        
+        Sim900A.delReadedSms();
       }
-	    Sim900A.delAllSms(); 
       xSemaphoreGive( Sim900ASemaphore );
     }
     vTaskDelay(10);
@@ -243,18 +242,17 @@ void StartUp()
   xTaskCreatePinnedToCore(SmsSend, "Sms Send", 10000, NULL, 1, &SmsSendH, 1);
   delay(50);
   String data = "StatusReport" + String(sapG) + "System Online" + String(sapL) + "Success";
+  delay(3000);
   xQueueSend(SerialBuffer, &data,(TickType_t) 0);
 }
 
 void setup() {
   Serial.begin(9600);
   Sim900ASemaphore = xSemaphoreCreateMutex();
-  // delay(10000);
-  while (!Serial)
-  {
-    /* code */
-  }
+  delay(10000);
+
   Sim900A.begin(9600);
+  Sim900A.beginServe();
   StartUp();  
 }
 
