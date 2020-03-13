@@ -282,13 +282,7 @@ String Sim900::readSms()
         index = _buffer.lastIndexOf('OK');
         _buffer.remove(index);
         _buffer.remove(index-1);
-
-        // _buffer.replace("+CMGL: ", sapG);
-        // _buffer.replace('\r\n', ' ');
-        // _buffer.replace('\n', ' ');
-        // _buffer.replace('\r', ' ');
-        // _buffer.replace(' ','');
-        
+        _pdus = CMGL(_buffer);        
         return _pdus;
     }
     else return "NoSMS";
