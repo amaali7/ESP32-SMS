@@ -10,16 +10,18 @@ void replace_callback (const char * match,         // what we found
                        unsigned int & replacement_length,  // put replacement length here
                        const MatchState & ms)      // for looking up captures
 {
-  replacement = "#";
-  replacement_length = 1;
+  replacement = sapL;
+  replacement_length = 9;
+  
 }  // end of replace_callback 
 
 
-String CMGL(String data)
+String RegexCmgl(String data)
 {
   unsigned long count;
   char buf[data.length()+1];
-  char p[100] = "%+CMGL:%s*(%d*),%s*[0-1],*,(%d+)\r\n";
+  // +CMGL: 17,0,"",19
+  char p[100] = "%+CMGL:%s(%d+),([0-1]),\"*\",(%d+)";
   data.toCharArray(buf,data.length()+1);
   MatchState ms (buf);
   ms.GlobalReplace (p, replace_callback);
@@ -276,13 +278,13 @@ String Sim900::readSms()
     _buffer =_readSerial(10000);
     //if (_buffer.indexOf("OK")!=-1 && !((_buffer.length()+1) == 29))
     //if (_buffer.indexOf("OK")!=-1)
-    if (_buffer.indexOf("OK")!=-1 && !((_buffer.length()+1) == 29))
+    if (_buffer.indexOf("+CMGL:")!=-1 && _buffer.indexOf("OK")!=-1 && !((_buffer.length()+1) == 29))
     {
         _buffer.replace("AT+CMGL=0","");
         index = _buffer.lastIndexOf('OK');
         _buffer.remove(index);
         _buffer.remove(index-1);
-        _pdus = CMGL(_buffer);        
+        _pdus = RegexCmgl(_buffer);        
         return _pdus;
     }
     else return "NoSMS";

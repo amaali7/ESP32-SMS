@@ -16,6 +16,12 @@
 
 
 void SplitString(String *data, String *token, String separator);
+String RegexCmgl(String data);
+void replace_callback (const char * match,         // what we found
+                       const unsigned int length,  // how long it was
+                       char * & replacement,       // put replacement here
+                       unsigned int & replacement_length,  // put replacement length here
+                       const MatchState & ms);
 
 class Sim900 : public SoftwareSerial
 {

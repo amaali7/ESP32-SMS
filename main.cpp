@@ -4,11 +4,11 @@
 Sim900 Sim900A(15,2);
 
 
-void SplitString(String *data, String *token, String separator)
-{
-  *token = data->substring(0, data->indexOf(separator));
-  data->remove(0, data->indexOf(separator) + separator.length());
-}
+// void SplitString(String *data, String *token, String separator)
+// {
+//   *token = data->substring(0, data->indexOf(separator));
+//   data->remove(0, data->indexOf(separator) + separator.length());
+// }
 
 //SoftwareSerial GPRS(15, 2); // RX, TX
 
@@ -218,9 +218,9 @@ void ResaveSMS(void* pt)
       }
       else if (data.length()>=40)
       {
-        dataRedy = "NewSms" + data;
+        dataRedy = "NewSms"+String(sapG)+String(0)+data;
         xQueueSend(SerialBuffer, &dataRedy,(TickType_t) 0);
-        Sim900A.delReadedSms();
+        //Sim900A.delReadedSms();
       }
       xSemaphoreGive( Sim900ASemaphore );
     }
